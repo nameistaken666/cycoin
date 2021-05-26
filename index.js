@@ -11,8 +11,8 @@ app.get('/',(req, res) => {
   res.sendFile("/index.html");
 });
 app.post('/block',(req, res) => {
-  console.log(req.body);
-  res.send(JSON.stringify(req.body)+"<1");
+  requestResponse.push(req.body);
+  res.send("thx for that yummy yum json file");
 });
 const client = (process.env.REPL_SLUG+"."+process.env.REPL_OWNER+".repl.co").toLowerCase();
 peernet.on("ping", (data => {
@@ -32,12 +32,26 @@ fs.readFile("self.json", async function(err, data){
     }
     fs.writeFileSync("self.json", JSON.stringify(newPeerData));
   } else {
+    data=JSON.parse(data.toString('utf8'))
     console.log("peer exists");
     isRequesting=1;
     requestResponse = [];
-    //peernet.emit("chainrequest", data);
+    peernet.emit("chainrequest", data);
     await delay(1000);
     console.log(requestResponse);
+    var sussybaka = undefined;
+    for(i in requestResponse){
+      if(sussybaka == undefined){
+        sussybaka = requestResponse[i]["data"];
+        continue;
+      } else {
+        if(sussybaka == requestResponse[i]["data"]){
+          console.log("OKAY")
+        } else {
+          console.log("ah shit");
+        }
+      }
+    }
   }
 });
 peernet.on("chainrequest", (data => {
