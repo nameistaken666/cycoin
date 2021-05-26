@@ -55,6 +55,8 @@ fs.readFile("self.json", async function(err, data){
       }
     }
     BlockChain = requestResponse;
+    console.log(BlockChain)
+    isRequesting=0;
   }
 });
 peernet.on("chainrequest", (data => {
