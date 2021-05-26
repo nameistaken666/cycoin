@@ -38,7 +38,6 @@ fs.readFile("self.json", async function(err, data){
     requestResponse = [];
     peernet.emit("chainrequest", data);
     await delay(1000);
-    console.log(requestResponse);
     var comp1 = undefined;
     var comp2 = undefined;
     for(i in requestResponse){
@@ -61,6 +60,7 @@ fs.readFile("self.json", async function(err, data){
 });
 peernet.on("chainrequest", (data => {
   if(isRequesting==0){
+    console.log("sent request to "+"https://"+data["fullurl"]);
     axios.post("https://"+data["fullurl"]+"/block", {
       sender: client,
       data: BlockChain
