@@ -1,6 +1,5 @@
 //https://replit.com/@Haxxors/coinws
-var io = require("socket.io-client");
-var peernet = io.connect("https://coinws.haxxors.repl.co", {reconnect: true});
+var peernet = require("socket.io-client").connect("https://coinws.haxxors.repl.co", {reconnect: true});
 peernet.on("ping", (data => {
   console.log(data);
 }));
