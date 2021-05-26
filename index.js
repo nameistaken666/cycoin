@@ -39,19 +39,22 @@ fs.readFile("self.json", async function(err, data){
     peernet.emit("chainrequest", data);
     await delay(1000);
     console.log(requestResponse);
-    var sussybaka = undefined;
+    var comp1 = undefined;
+    var comp2 = undefined;
     for(i in requestResponse){
-      if(sussybaka == undefined){
-        sussybaka = requestResponse[i]["data"];
+      if(comp1 == undefined){
+        comp1 = requestResponse[i]["data"];
+        comp2 = i;
         continue;
       } else {
-        if(sussybaka == requestResponse[i]["data"]){
-          console.log("OKAY")
+        if(JSON.stringify(comp1) == JSON.stringify(requestResponse[i]["data"])){
+          console.log("Comparison checked out");
         } else {
-          console.log("ah shit");
+          throw "Conflicting data from "+requestResponse[comp2]["sender"];
         }
       }
     }
+    BlockChain = requestResponse;
   }
 });
 peernet.on("chainrequest", (data => {
