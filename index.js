@@ -53,8 +53,8 @@ fs.readFile("self.json", async function(err, data){
         }
       }
     }
-    BlockChain = requestResponse;
-    console.log(BlockChain)
+    BlockChain = comp1;
+    console.log(BlockChain);
     isRequesting=0;
   }
 });
