@@ -43,12 +43,18 @@ app.post('/block',(req, res) => {
   requestPeers.push(req.body.sender);
   res.send("thx for that yummy yum json file");
 });
+app.post('/fix',(req, res) => {
+  BlockChain = req.body.data;
+  console.log("Recived Fix")
+  res.send("thx for that yummy yum json file");
+});
 const client = (process.env.REPL_SLUG+"."+process.env.REPL_OWNER+".repl.co").toLowerCase();
 peernet.on("ping", (data => {
   console.log(data);
 }));
 var isRequesting = 0;
 var BlockChain;
+//var BlockChain = {"json":"sus"};
 var requestResponse = [];
 var requestPeers = [];
 fs.readFile("self.json", async function(err, data){
@@ -71,19 +77,34 @@ fs.readFile("self.json", async function(err, data){
     var incoherentpeers = [];
     peernet.emit("chainrequest", data);
     await delay(1000);
-    while(findUnlike(requestResponse) != undefined){
-      console.log("sent correct array to peer "+requestPeers[findUnlike(requestResponse)]);
-      incoherentpeers.push(requestPeers[findUnlike(requestResponse)]);
-      requestResponse.splice(findUnlike(requestResponse), 1);
-      requestPeers.splice(findUnlike(requestResponse), 1);
+    var count = [];
+    var count2 = [];
+    for(i in requestResponse){
+      if(count.indexOf(JSON.stringify(requestResponse[i])) == -1){
+          count.push(JSON.stringify(requestResponse[i]))
+          count2.push(1);
+      } else {
+        count2[count.indexOf(JSON.stringify(requestResponse[i]))]=count2[count.indexOf(JSON.stringify(requestResponse[i]))]+1;
+      }
     }
-    BlockChain = requestResponse[0];
-    for(i in incoherentpeers){
-      axios.post("https://"+incoherentpeers[i]+"/fix", {
-        sender: client,
-        data: BlockChain
-      });
+    var high = 0;
+    var highId = -1;
+    for(i in count){
+      if(count2[i]>high){
+        high=count2[i];
+        highId = i;
+      }
     }
+    for(i in requestResponse){
+      if(JSON.stringify(requestResponse[i]) != JSON.stringify(requestResponse[highId])){
+        console.log(requestPeers[i]+" sent incorrect data: "+JSON.stringify(requestResponse[i]))
+        axios.post("https://"+requestPeers[i]+"/fix", {
+          sender: client,
+          data: BlockChain
+        });
+      }
+    }
+    BlockChain = requestResponse[highId];
     console.log(BlockChain);
     isRequesting=0;
   }
