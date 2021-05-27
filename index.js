@@ -3,15 +3,44 @@ const APP_VERSION = "0.0.1";
 var peernet = require("socket.io-client").connect("https://coinws.haxxors.repl.co", {reconnect: true});
 const delay = (ms) => new Promise((res) => setTimeout(res, ms));
 const axios = require('axios');
+const crypto = require("crypto");
 const fs = require("fs");
 const express = require("express");
 const app = express();
+function hash(data){
+  var hash = crypto.createHmac("sha256", "saltysalt").update(data).digest('hex');
+  return hash;
+}
+function compareHash(str, hash){
+  var chash = crypto.createHmac("sha256", "saltysalt").update(str).digest('hex');
+  return chash == hash;
+}
+const findUnlike = arr => {
+  var odder = undefined;
+   for(let i = 1; i < arr.length-1; i++){
+      if(arr[i] - arr[i-1] !== 0 && arr[i]-arr[i+1] === 0){
+         odder = arr[i-1];
+      }else if(arr[i] - arr[i-1] !== 0 && arr[i]-arr[i+1] === 0){
+         odder = arr[i]
+      }else if(arr[i] - arr[i-1] === 0 && arr[i]-arr[i+1] !== 0){
+         odder = arr[i+1];
+      };
+      continue;
+   };
+   if(odder != undefined){
+     return arr.indexOf(odder);
+   } else {
+     return undefined;
+   }
+};
 app.use(express.json());
 app.get('/',(req, res) => {
-  res.sendFile("/index.html");
+  res.send("ok");
+  console.log("got pinged " + Date.now());
 });
 app.post('/block',(req, res) => {
-  requestResponse.push(req.body);
+  requestResponse.push(req.body.data);
+  requestPeers.push(req.body.sender);
   res.send("thx for that yummy yum json file");
 });
 const client = (process.env.REPL_SLUG+"."+process.env.REPL_OWNER+".repl.co").toLowerCase();
@@ -21,6 +50,7 @@ peernet.on("ping", (data => {
 var isRequesting = 0;
 var BlockChain;
 var requestResponse = [];
+var requestPeers = [];
 fs.readFile("self.json", async function(err, data){
   if(err+"".match("No such file")){
     console.log("peer setup");
@@ -31,29 +61,21 @@ fs.readFile("self.json", async function(err, data){
       "app_version": APP_VERSION
     }
     fs.writeFileSync("self.json", JSON.stringify(newPeerData));
+
   } else {
     data=JSON.parse(data.toString('utf8'))
     console.log("peer exists");
     isRequesting=1;
     requestResponse = [];
+    requestPeers = [];
     peernet.emit("chainrequest", data);
     await delay(1000);
-    var comp1 = undefined;
-    var comp2 = undefined;
-    for(i in requestResponse){
-      if(comp1 == undefined){
-        comp1 = requestResponse[i]["data"];
-        comp2 = i;
-        continue;
-      } else {
-        if(JSON.stringify(comp1) == JSON.stringify(requestResponse[i]["data"])){
-          console.log("Comparison checked out");
-        } else {
-          throw "Conflicting data from "+requestResponse[comp2]["sender"];
-        }
-      }
+    while(findUnlike(requestResponse) != undefined){
+      console.log("sent correct array to peer "+requestPeers[findUnlike(requestResponse)]);
+      requestResponse.splice(findUnlike(requestResponse), 1);
+      requestPeers.splice(findUnlike(requestResponse), 1);
     }
-    BlockChain = comp1;
+    BlockChain = requestResponse[0];
     console.log(BlockChain);
     isRequesting=0;
   }
