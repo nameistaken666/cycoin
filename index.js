@@ -80,6 +80,7 @@ fs.readFile("self.json", async function(err, data){
     isRequesting=0;
   }
 });
+//push
 peernet.on("chainrequest", (data => {
   if(isRequesting==0){
     console.log("sent request to "+"https://"+data["fullurl"]);
