@@ -68,19 +68,26 @@ fs.readFile("self.json", async function(err, data){
     isRequesting=1;
     requestResponse = [];
     requestPeers = [];
+    var incoherentpeers = [];
     peernet.emit("chainrequest", data);
     await delay(1000);
     while(findUnlike(requestResponse) != undefined){
       console.log("sent correct array to peer "+requestPeers[findUnlike(requestResponse)]);
+      incoherentpeers.push(requestPeers[findUnlike(requestResponse)]);
       requestResponse.splice(findUnlike(requestResponse), 1);
       requestPeers.splice(findUnlike(requestResponse), 1);
     }
     BlockChain = requestResponse[0];
+    for(i in incoherentpeers){
+      axios.post("https://"+incoherentpeers[i]+"/fix", {
+        sender: client,
+        data: BlockChain
+      });
+    }
     console.log(BlockChain);
     isRequesting=0;
   }
 });
-//push
 peernet.on("chainrequest", (data => {
   if(isRequesting==0){
     console.log("sent request to "+"https://"+data["fullurl"]);
