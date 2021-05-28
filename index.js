@@ -107,10 +107,10 @@ peernet.on("chainrequest", (data => {
     console.log("sent request to "+"https://"+data["fullurl"]);
     axios.post("https://"+data["fullurl"]+"/block", {
       sender: client,
-      data: {"BlockChain":"sus"}
+      data: BlockChain
     });
     lastsentadress = data["fullurl"];
-    lastsentdata = {"BlockChain":"sus"};
+    lastsentdata = BlockChain;
   }
 }));
 peernet.on("chainrequestres", (data => {
