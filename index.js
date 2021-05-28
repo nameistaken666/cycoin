@@ -15,24 +15,6 @@ function compareHash(str, hash){
   var chash = crypto.createHmac("sha256", "saltysalt").update(str).digest('hex');
   return chash == hash;
 }
-const findUnlike = arr => {
-  var odder = undefined;
-   for(let i = 1; i < arr.length-1; i++){
-      if(arr[i] - arr[i-1] !== 0 && arr[i]-arr[i+1] === 0){
-         odder = arr[i-1];
-      }else if(arr[i] - arr[i-1] !== 0 && arr[i]-arr[i+1] === 0){
-         odder = arr[i]
-      }else if(arr[i] - arr[i-1] === 0 && arr[i]-arr[i+1] !== 0){
-         odder = arr[i+1];
-      };
-      continue;
-   };
-   if(odder != undefined){
-     return arr.indexOf(odder);
-   } else {
-     return undefined;
-   }
-};
 app.use(express.json());
 app.get('/',(req, res) => {
   res.send("ok");
