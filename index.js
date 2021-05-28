@@ -7,6 +7,9 @@ const crypto = require("crypto");
 const fs = require("fs");
 const express = require("express");
 const app = express();
+function jstr(json){
+  return JSON.stringify(json);
+}
 function hash(data){
   var hash = crypto.createHmac("sha256", "saltysalt").update(data).digest('hex');
   return hash;
@@ -15,24 +18,6 @@ function compareHash(str, hash){
   var chash = crypto.createHmac("sha256", "saltysalt").update(str).digest('hex');
   return chash == hash;
 }
-const findUnlike = arr => {
-  var odder = undefined;
-   for(let i = 1; i < arr.length-1; i++){
-      if(arr[i] - arr[i-1] !== 0 && arr[i]-arr[i+1] === 0){
-         odder = arr[i-1];
-      }else if(arr[i] - arr[i-1] !== 0 && arr[i]-arr[i+1] === 0){
-         odder = arr[i]
-      }else if(arr[i] - arr[i-1] === 0 && arr[i]-arr[i+1] !== 0){
-         odder = arr[i+1];
-      };
-      continue;
-   };
-   if(odder != undefined){
-     return arr.indexOf(odder);
-   } else {
-     return undefined;
-   }
-};
 app.use(express.json());
 app.get('/',(req, res) => {
   res.send("ok");
@@ -44,9 +29,14 @@ app.post('/block',(req, res) => {
   res.send("thx for that yummy yum json file");
 });
 app.post('/fix',(req, res) => {
-  BlockChain = req.body.data;
-  console.log("Recived Fix")
-  res.send("thx for that yummy yum json file");
+  if(jstr(req.body.your) != jstr(lastsentdata) || req.body.sender != lastsentadress){
+    console.log("Malicious data 'fix' intercepted and rejected");
+    res.send("rejected");
+  } else {
+    BlockChain = req.body.data;
+    console.log("Recived Fix");
+    res.send("thx for that yummy yum json file");
+  }
 });
 const client = (process.env.REPL_SLUG+"."+process.env.REPL_OWNER+".repl.co").toLowerCase();
 peernet.on("ping", (data => {
@@ -100,7 +90,8 @@ fs.readFile("self.json", async function(err, data){
         console.log(requestPeers[i]+" sent incorrect data: "+JSON.stringify(requestResponse[i]))
         axios.post("https://"+requestPeers[i]+"/fix", {
           sender: client,
-          data: BlockChain
+          data: BlockChain,
+          your: requestResponse[i]
         });
       }
     }
@@ -109,13 +100,17 @@ fs.readFile("self.json", async function(err, data){
     isRequesting=0;
   }
 });
+var lastsentdata;
+var lastsentadress;
 peernet.on("chainrequest", (data => {
   if(isRequesting==0){
     console.log("sent request to "+"https://"+data["fullurl"]);
     axios.post("https://"+data["fullurl"]+"/block", {
       sender: client,
-      data: BlockChain
+      data: {"BlockChain":"sus"}
     });
+    lastsentadress = data["fullurl"];
+    lastsentdata = {"BlockChain":"sus"};
   }
 }));
 peernet.on("chainrequestres", (data => {
